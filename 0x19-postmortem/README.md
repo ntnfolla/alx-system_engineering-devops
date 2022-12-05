@@ -1,39 +1,47 @@
-Postmortem
+0x19. Postmortem |Incident Report| by Natan Folla
 
 
+On December first we experience an outage in our API infrastructure. Due to that we are providing this Postmortem or incident report.
 
-Using one of the web stack debugging project issue or an outage you have personally face, write a postmortem. Most of you will never have faced an outage, so just get creative and invent your own :)
+As we indicate in the paragraph above on Dec 1, 2022 after midnight, we understand earlier that day a service issue has impacted our valued developers, users and customer so we apologize to everyone affected.
 
-Requirements:
+Issue Summary
+
+From 9:04 AM to 11:55 PM local time |GMT+3|, requests of most of APIs resulted error response message due to this our applications reduced functionality at 50%. The root cause of this outage was an invalid configuration change that exposed a bug in a widely used internal library.
+
+Timeline (local time GMT+3)
+
+7:46 AM:  Configuration push begins
+9:04 AM: Outage begins
+12:05 AM: Pagers alerted teams
+4:35 PM: Failed configuration change rollback
+8:02 PM: Successful configuration change rollback
+10:24 PM: Server restarts begin
+11:55 PM: 100% of traffic back online
+
+Root Cause
+
+AT 7:46 PM local time|GMT+3|, a configuration change was inadvertently released to our environment without first releasing it in a testing environment. The change specified an invalid address for the authentication server in production. This exposed a bug in the libraries which led to block permanently while attempting to resolve the invalid address to physical services. Since the internal monitoring system permanently blocked the authentication library the combination of the bug and configuration error quickly caused all the server threads to be consumed. The servers began repeatedly hanging and restarting as they attempted to recover and at 9:04 AM local time|GMT+3|, the service outage began.
+
+Resolution and recovery
+
+AT 9:04 AM local time|GMT+3|, the monitoring system alerted our engineers, At 11:05 AM the incident response team identify the monitoring system. At 12:05 AM, we attempted to rollback the problem configuration change. At 8:02 PM the problem was addressed and successfully rolled back after many failed attempts. 
+
+To help with the recovery, we turned off some of our monitoring systems which were triggering the bug. As a result, we decided to restart servers gradually at 10:24 PM local time|GMT+3|, to avoid possible cascading failures. By 11:05 PM, 40% of traffic was restored and 100% of traffic restored by 11:55 PM.
+
+Corrective and Preventative Measures
+
+Since the first of December we conducted an internal review and analysis of the outage. Five major actions taken as a corrective and preventative measure;
+
+1st Disable the current configurations
+
+2nd Change the rollback process
+
+3rd Fix the underlying authentication library
+
+4th Improve process
+
+5th develop better mechanism for quickly delivering status notification
 
 
-Issue Summary (that is often what executives will read) must contain:
-
-Duration of the outage with start and end times (including timezone)
-What was the impact (what service was down/slow? What were user experiencing? How many % of the users were affected?)
-What was the root cause
-
-Timeline (format bullet point, format: time - keep it short, 1 or 2 sentences) must contain:
-
-When was the issue detected
-How was the issue detected (monitoring alert, an engineer noticed something, a customer complained...)
-Actions taken (what parts of the system were investigated, what were the assumption on the root cause of the issue)
-Misleading investigation/debugging paths that were taken
-Which team/individuals was the incident escalated to
-How the incident was resolved
-
-Root cause and resolution must contain:
-
-Explain in detail what was causing the issue
-Explain in detail how the issue was fixed
-
-Corrective and preventative measures must contain:
-
-What are the things that can be improved/fixed (broadly speaking)
-A list of tasks to address the issue (be very specific, like a TODO, example: patch Nginx server, add monitoring on server memory...)
-
-Be brief and straight to the point, between 400 to 600 words
-
-While postmortem format can vary, stick to this one so that you can get properly reviewed by your peers.
-
-Please, remember that these blogs must be written in English to further your technical ability in a variety of settings.
+We are committed to quickly improve our technology so we appreciate your feedback and patience. Once again apologies for the impact we cause on developers, users and customers and Thank you for your support.
